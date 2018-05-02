@@ -58,6 +58,8 @@ do
     ldd /tmp/hyperstart-rootfs/${bin} | while read line
     do
 	    arr=(${line// / })
+	    echo "Searching for shared libraries for ${arr[@]}"
+      flag=0
 
 	    for lib in ${arr[@]}
 	    do
@@ -65,8 +67,22 @@ do
 			    dir=/tmp/hyperstart-rootfs`dirname $lib`
 			    mkdir -p "${dir}"
 			    cp -f $lib $dir
+          flag=$lib
 		    fi
+        locallibpath=$(find /tmp/hyperstart-rootfs/usr -name $lib)
+        if [[ ! -z $locallibpath ]]; then 
+			    dir=/tmp/hyperstart-rootfs/lib64
+			    mkdir -p "${dir}"
+			    cp -f $locallibpath $dir
+          flag=$locallibpath
+        fi
 	    done
+
+      if [[ $flag == 0 ]]; then
+        echo "No shared libraries found"
+      else
+        echo "Found: $flag"
+      fi
     done
 done
 
